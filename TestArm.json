@@ -60,52 +60,22 @@
         "description": "The name for the VM's public IP."
       }
     },
+    "publicIPAddressName1": {
+      "type": "string",
+      "defaultValue": "myPublicIP1",
+      "metadata": {
+        "description": "The name for the VM's public IP."
+      }
+    },
     "subnetName": {
       "type": "string",
       "defaultValue": "Subnet",
       "metadata": {
         "description": "The name for the VM's Subnet."
       }
-    },
-    "WebAvailabilitySetName": {
-      "type": "string",
-      "minLength": 1
-    },
-    "Storage1Type": {
-      "type": "string",
-      "defaultValue": "Standard_LRS",
-      "allowedValues": [
-        "Standard_LRS",
-        "Standard_ZRS",
-        "Standard_GRS",
-        "Standard_RAGRS",
-        "Premium_LRS"
-      ]
-    },
-    "Web1Name": {
-      "type": "string",
-      "minLength": 1
-    },
-    "Web1AdminUserName": {
-      "type": "string",
-      "minLength": 1
-    },
-    "Web1AdminPassword": {
-      "type": "securestring"
-    },
-    "Web1WindowsOSVersion": {
-      "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
-      ]
     }
   },
   "variables": {
-    "resourceGroupName": "Ansible_ResourceGroup ",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "nicName": "[parameters('nicName')]",
@@ -113,6 +83,7 @@
     "subnetName": "[parameters('subnetName')]",
     "subnetPrefix": "10.0.0.0/24",
     "publicIPAddressName": "[parameters('publicIPAddressName')]",
+    "publicIPAddressName1": "[parameters('publicIPAddressName1')]",
     "publicIPAddressType": "Dynamic",
     "vmName": "[parameters('vmName')]",
     "vmSize": "Standard_A2",
@@ -120,18 +91,21 @@
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
     "apiVersion": "2015-06-15",
-    "hostDNSNameScriptArgument": "[concat('*.',resourceGroup().location,'.cloudapp.azure.com')]",
-    "Storage1Name": "[concat('Storage1', uniqueString(resourceGroup().id))]",
-    "Web1ImagePublisher": "MicrosoftWindowsServer",
-    "Web1ImageOffer": "WindowsServer",
-    "Web1OSDiskName": "Web1OSDisk",
-    "Web1VmSize": "Standard_D2_v2",
-    "Web1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
-    "Web1SubnetRef": "[concat(variables('Web1VnetID'), '/subnets/', variables('subnetName'))]",
-    "Web1StorageAccountContainerName": "vhds",
-    "Web1NicName": "[concat(parameters('Web1Name'), 'NetworkInterface')]"
+    "hostDNSNameScriptArgument": "[concat('*.',resourceGroup().location,'.cloudapp.azure.com')]"
   },
   "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
+        }
+      }
+    },
     {
       "apiVersion": "2015-06-15",
       "type": "Microsoft.Network/publicIPAddresses",
