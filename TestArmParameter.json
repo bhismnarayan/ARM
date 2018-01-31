@@ -3,25 +3,13 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "adminUsername": {
-      "value": "WinAdmin"
+      "value": "winamin123"
     },
     "adminPAssword": {
       "value": "Azureuser12#"
     },
-    "WebAvailabilitySetName": {
-      "value": "WebAvailavility"
-    },
-    "Web1Name": {
-      "value": "Web1"
-    },
-    "Web1AdminUserName": {
-      "value": "WinAdmin"
-    },
-    "Web1AdminPassword": {
-      "value": "Azureuser12#"
-    },
-    "Web1WindowsOSVersion": {
-      "value": "Windows-Server-Technical-Preview"
+    "ABCName": {
+      "value": "WinAdmin_3"
     }
   }
 }
