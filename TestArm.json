@@ -105,6 +105,7 @@
     }
   },
   "variables": {
+    "resourceGroupName": "Ansible_ResourceGroup ",
     "imagePublisher": "MicrosoftWindowsServer",
     "imageOffer": "WindowsServer",
     "nicName": "[parameters('nicName')]",
@@ -249,105 +250,6 @@
           }
         }
       ]
-    },
-    {
-      "name": "[parameters('WebAvailabilitySetName')]",
-      "type": "Microsoft.Compute/availabilitySets",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2015-06-15",
-      "dependsOn": [ ],
-      "tags": {
-        "displayName": "WebAvailabilitySet"
-      },
-      "properties": {
-        "platformUpdateDomainCount": 1,
-        "platformFaultDomainCount": 1
-      }
-    },
-    {
-      "name": "[variables('Storage1Name')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-01-01",
-      "sku": {
-        "name": "[parameters('Storage1Type')]"
-      },
-      "dependsOn": [ ],
-      "tags": {
-        "displayName": "Storage1"
-      },
-      "kind": "Storage"
-    },
-    {
-      "name": "[variables('Web1NicName')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
-      ],
-      "tags": {
-        "displayName": "Web1Nic"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('Web1SubnetRef')]"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[parameters('Web1Name')]",
-      "type": "Microsoft.Compute/virtualMachines",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2015-06-15",
-      "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage1Name'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('Web1NicName'))]"
-      ],
-      "tags": {
-        "displayName": "Web1"
-      },
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[variables('Web1VmSize')]"
-        },
-        "osProfile": {
-          "computerName": "[parameters('Web1Name')]",
-          "adminUsername": "[parameters('Web1AdminUsername')]",
-          "adminPassword": "[parameters('Web1AdminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('Web1ImagePublisher')]",
-            "offer": "[variables('Web1ImageOffer')]",
-            "sku": "[parameters('Web1WindowsOSVersion')]",
-            "version": "latest"
-          },
-          "osDisk": {
-            "name": "Web1OSDisk",
-            "vhd": {
-              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('Storage1Name')), '2016-01-01').primaryEndpoints.blob, variables('Web1StorageAccountContainerName'), '/', variables('Web1OSDiskName'), '.vhd')]"
-            },
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          }
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('Web1NicName'))]"
-            }
-          ]
-        }
-      }
     }
   ]
 }
