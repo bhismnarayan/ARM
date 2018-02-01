@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "TestType": {
+    "storagewinType": {
       "type": "string",
       "defaultValue": "Standard_LRS",
       "allowedValues": [
@@ -13,18 +13,18 @@
         "Premium_LRS"
       ]
     },
-    "ABCName": {
+    "WinServer1Name": {
       "type": "string",
       "minLength": 1
     },
-    "adminUsername": {
+    "WinServer1AdminUserName": {
       "type": "string",
       "minLength": 1
     },
-    "adminPAssword": {
+    "WinServer1AdminPassword": {
       "type": "securestring"
     },
-    "ABCWindowsOSVersion": {
+    "WinServer1WindowsOSVersion": {
       "type": "string",
       "defaultValue": "2012-R2-Datacenter",
       "allowedValues": [
@@ -33,48 +33,83 @@
         "2012-R2-Datacenter",
         "Windows-Server-Technical-Preview"
       ]
-    },
-    "virtualNetworkName": {
-      "type": "string",
-      "defaultValue": "AnsibleControllerCentOSVmVNET"
-    },
-    "virtualNetworkResourceGroup": {
-      "type": "string",
-      "defaultValue": "Ansible_ResourceGroup"
     }
-
-
+   
+    
   },
   "variables": {
-    "TestName": "[concat('Test', uniqueString(resourceGroup().id))]",
-    "ABCVNPrefix": "10.0.0.0/16",
-    "ABCVNSubnet1Name": "Subnet-1",
-    "ABCVNSubnet1Prefix": "10.0.0.0/24",
-    "ABCVNSubnet2Name": "Subnet-2",
-    "ABCVNSubnet2Prefix": "10.0.1.0/24",
-    "ABCImagePublisher": "MicrosoftWindowsServer",
-    "ABCImageOffer": "WindowsServer",
-    "ABCOSDiskName": "ABCOSDisk",
-    "ABCVmSize": "Standard_D2_v2",
-    "ABCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'ABCVN')]",
-    "ABCSubnetRef": "[concat(variables('ABCVnetID'), '/subnets/', variables('ABCVNSubnet1Name'))]",
-    "ABCStorageAccountContainerName": "vhds",
-    "ABCNicName": "[concat(parameters('ABCName'), 'NetworkInterface')]",
-    "ABC2VnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-    "ABC2SubnetRef": "[concat(variables('ABC2VnetID'), '/subnets/', 'AnsibleControllerCentOSVmSubnet')]",
-    "testPublicName": "testPublic"
-
+    "storagewinName": "[concat('storagewin', uniqueString(resourceGroup().id))]",
+    "winvnetPrefix": "10.0.0.0/16",
+    "winvnetSubnet1Name": "Subnet-1",
+    "winvnetSubnet1Prefix": "10.0.0.0/24",
+    "winvnetSubnet2Name": "Subnet-2",
+    "winvnetSubnet2Prefix": "10.0.1.0/24",
+    "WinServer1ImagePublisher": "MicrosoftWindowsServer",
+    "WinServer1ImageOffer": "WindowsServer",
+    "WinServer1OSDiskName": "WinServer1OSDisk",
+    "WinServer1VmSize": "Standard_D2_v2",
+    "WinServer1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'winvnet')]",
+    "WinServer1SubnetRef": "[concat(variables('WinServer1VnetID'), '/subnets/', variables('winvnetSubnet1Name'))]",
+    "WinServer1StorageAccountContainerName": "vhds",
+    "WinServer1NicName": "[concat(parameters('WinServer1Name'), 'NetworkInterface')]"
+    
   },
   "resources": [
     {
-      "name": "[parameters('ABCName')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "centralindia",
-      "apiVersion": "2017-05-10",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses', variables('testPublicName'))]" ],
+      "name": "[variables('storagewinName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-01-01",
+      "sku": {
+        "name": "[parameters('storagewinType')]"
+      },
+      "dependsOn": [ ],
       "tags": {
-        "displayName": "ABC"
+        "displayName": "storagewin"
+      },
+      "kind": "Storage"
+    },
+    {
+      "name": "winvnet",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "winvnet"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('winvnetPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('winvnetSubnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('winvnetSubnet1Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('winvnetSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('winvnetSubnet2Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('WinServer1NicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-03-30",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', 'winvnet')]"
+      ],
+      "tags": {
+        "displayName": "WinServer1Nic"
       },
       "properties": {
         "ipConfigurations": [
@@ -83,10 +118,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('ABC2SubnetRef')]"
-              },
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('testPublicName'))]"
+                "id": "[variables('WinServer1SubnetRef')]"
               }
             }
           }
@@ -94,22 +126,52 @@
       }
     },
     {
-      "name": "[variables('testPublicName')]",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "location": "centralindia",
-      "apiVersion": "2017-05-10",
-      "dependsOn": [],
+      "name": "[parameters('WinServer1Name')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storagewinName'))]",
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('WinServer1NicName'))]"
+      ],
       "tags": {
-        "displayName": "testPublic"
+        "displayName": "WinServer1"
       },
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('adminUsername')]"
+        "hardwareProfile": {
+          "vmSize": "[variables('WinServer1VmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('WinServer1Name')]",
+          "adminUsername": "[parameters('WinServer1AdminUsername')]",
+          "adminPassword": "[parameters('WinServer1AdminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('WinServer1ImagePublisher')]",
+            "offer": "[variables('WinServer1ImageOffer')]",
+            "sku": "[parameters('WinServer1WindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "WinServer1OSDisk",
+            "vhd": {
+              "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storagewinName')), '2016-01-01').primaryEndpoints.blob, variables('WinServer1StorageAccountContainerName'), '/', variables('WinServer1OSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('WinServer1NicName'))]"
+            }
+          ]
         }
       }
     }
     
-
+    
   ]
 }
