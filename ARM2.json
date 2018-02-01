@@ -1,0 +1,115 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "TestType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_ZRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Premium_LRS"
+      ]
+    },
+    "ABCName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adminPAssword": {
+      "type": "securestring"
+    },
+    "ABCWindowsOSVersion": {
+      "type": "string",
+      "defaultValue": "2012-R2-Datacenter",
+      "allowedValues": [
+        "2008-R2-SP1",
+        "2012-Datacenter",
+        "2012-R2-Datacenter",
+        "Windows-Server-Technical-Preview"
+      ]
+    },
+    "virtualNetworkName": {
+      "type": "string",
+      "defaultValue": "AnsibleControllerCentOSVmVNET"
+    },
+    "virtualNetworkResourceGroup": {
+      "type": "string",
+      "defaultValue": "Ansible_ResourceGroup"
+    }
+
+
+  },
+  "variables": {
+    "TestName": "[concat('Test', uniqueString(resourceGroup().id))]",
+    "ABCVNPrefix": "10.0.0.0/16",
+    "ABCVNSubnet1Name": "Subnet-1",
+    "ABCVNSubnet1Prefix": "10.0.0.0/24",
+    "ABCVNSubnet2Name": "Subnet-2",
+    "ABCVNSubnet2Prefix": "10.0.1.0/24",
+    "ABCImagePublisher": "MicrosoftWindowsServer",
+    "ABCImageOffer": "WindowsServer",
+    "ABCOSDiskName": "ABCOSDisk",
+    "ABCVmSize": "Standard_D2_v2",
+    "ABCVnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'ABCVN')]",
+    "ABCSubnetRef": "[concat(variables('ABCVnetID'), '/subnets/', variables('ABCVNSubnet1Name'))]",
+    "ABCStorageAccountContainerName": "vhds",
+    "ABCNicName": "[concat(parameters('ABCName'), 'NetworkInterface')]",
+    "ABC2VnetID": "[resourceId(parameters('virtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "ABC2SubnetRef": "[concat(variables('ABC2VnetID'), '/subnets/', 'AnsibleControllerCentOSVmSubnet')]",
+    "testPublicName": "testPublic"
+
+  },
+  "resources": [
+    {
+      "name": "[parameters('ABCName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "centralindia",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('testPublicName'))]" ],
+      "tags": {
+        "displayName": "ABC"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('ABC2SubnetRef')]"
+              },
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('testPublicName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('testPublicName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "centralindia",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "testPublic"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('adminUsername')]"
+        }
+      }
+    }
+    
+
+  ]
+}
