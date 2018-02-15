@@ -30,7 +30,12 @@
             "properties": {
               "addressPrefix": "[variables('ABCSubnet1Prefix')]"
             }
-          }
+          },
+          {
+            "name": "[variables('ABCSubnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('ABCSubnet2Prefix')]"
+            }
           }
         ]
       }
