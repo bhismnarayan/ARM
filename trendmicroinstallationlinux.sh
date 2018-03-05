@@ -8,7 +8,7 @@
   SOURCEURL='https://app.deepsecurity.trendmicro.com:443'
   CURLOUT=$(eval curl $SOURCEURL/software/deploymentscript/platform/linux-secure/ -o /tmp/DownloadInstallAgentPackage --silent --tlsv1.2;)
   err=$?
-  if [[ $err -eq 60 ]]; then
+  if [ $err -eq 60 ]; then
      echo "TLS certificate validation for the agent package download has failed. Please check that your Deep Security Manager TLS certificate is signed by a trusted root certificate authority. For more information, search for \"deployment scripts\" in the Deep Security Help Center."
      logger -t TLS certificate validation for the agent package download has failed. Please check that your Deep Security Manager TLS certificate is signed by a trusted root certificate authority. For more information, search for \"deployment scripts\" in the Deep Security Help Center.
      exit 2;
