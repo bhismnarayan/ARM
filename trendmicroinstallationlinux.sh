@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script detects platform and architecture, then downloads and installs the matching Deep Security Agent package
- if [[ $(/usr/bin/id -u) -ne 0 ]]; then echo You are not running as the root user.  Please try again with root privileges.;
+ if [ $(/usr/bin/id -u) -ne 0 ]; then echo You are not running as the root user.  Please try again with root privileges.;
     logger -t You are not running as the root user.  Please try again with root privileges.;
     exit 1;
  fi;
